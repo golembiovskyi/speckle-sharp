@@ -263,7 +263,7 @@ namespace ConnectorGSA
       return convertedObjs;
     }
 
-    public static async Task<bool> SendCommit(Base commitObj, StreamState state, string parent, params ITransport[] transports)
+    public static async Task<(bool status, string commitId)> SendCommit(Base commitObj, StreamState state, string parent, params ITransport[] transports)
     {
       var commitObjId = await Operations.Send(
         @object: commitObj,
@@ -274,6 +274,7 @@ namespace ConnectorGSA
         }
         );
 
+      var commitId = "";
       if (transports.Any(t => t is ServerTransport))
       {
         var actualCommit = new CommitCreateInput
@@ -294,7 +295,7 @@ namespace ConnectorGSA
 
         try
         {
-          var commitId = await state.Client.CommitCreate(actualCommit);
+          commitId = await state.Client.CommitCreate(actualCommit);
           ((GsaModel)Instance.GsaModel).LastCommitId = commitId;
         }
         catch (Exception e)
@@ -303,7 +304,7 @@ namespace ConnectorGSA
         }
       }
 
-      return (state.Errors.Count == 0);
+      return (status: (state.Errors.Count == 0), commitId: commitId);
     }
 
     internal static async Task<bool> Receive(TabCoordinator coordinator, IProgress<MessageEventArgs> loggingProgress, IProgress<string> statusProgress, IProgress<double> percentageProgress)
@@ -955,7 +956,7 @@ namespace ConnectorGSA
       var serverTransport = new ServerTransport(account, ss.Stream.id);
       var sent = await Commands.SendCommit(commitObj, ss, ((GsaModel)Instance.GsaModel).LastCommitId, serverTransport);
 
-      if (sent)
+      if (sent.status)
       {
         loggingProgress.Report(new MessageEventArgs(MessageIntent.Display, MessageLevel.Information, "Successfully sent data to stream"));
         Commands.UpsertSavedReceptionStreamInfo(true, null, ss);

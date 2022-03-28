@@ -71,6 +71,7 @@ namespace ConnectorGSA
       }
 
       var sendReceive = (cliMode == "receiver") ? SendReceive.Receive : SendReceive.Send;
+      Console.WriteLine($"Setting up {cliMode} task...");
 
       #region create_argpairs
       for (int index = 1; index < args.Length; index += 2)
@@ -154,7 +155,10 @@ namespace ConnectorGSA
       }
       else
       {
-        userInfo = AccountManager.GetUserInfo(ApiToken, RestApi).Result;
+        var userInfoTask = Task.Run(() => AccountManager.GetUserInfo(ApiToken, RestApi));
+        userInfoTask.Wait();
+
+        userInfo = userInfoTask.Result;
         if (userInfo != null)
         {
           account = AccountManager.GetAccounts().FirstOrDefault(a => a.userInfo.id == userInfo.id);
@@ -170,6 +174,7 @@ namespace ConnectorGSA
           return false;
         }
       }
+      Console.WriteLine($"Using server at {RestApi} and account with email {userInfo.email}");
 
       var client = new Client(account);
 
@@ -215,7 +220,11 @@ namespace ConnectorGSA
 
       var kit = KitManager.GetDefaultKit();
       var converter = kit.LoadConverter(VersionedHostApplications.GSA);
-      if (converter == null) throw new Exception("Could not find any Kit!");
+      if (converter == null)
+      {
+        Console.WriteLine($"Could not find any Kit!");
+        return false;
+      }
 
       var streamStates = new List<StreamState>();
       bool cliResult = false;
@@ -228,7 +237,7 @@ namespace ConnectorGSA
         //There seem to be some issues with HTTP requests down the line if this is run on the initial (UI) thread, so this ensures it runs on another thread
         cliResult = Task.Run(() =>
         {
-          Console.WriteLine($"Loading data from: {filePath}");
+          Console.WriteLine($"Loading data from {filePath}");
 
           //Load data to cause merging
           Commands.LoadDataFromFile(null); //Ensure all nodes
@@ -247,7 +256,7 @@ namespace ConnectorGSA
             var transport = new ServerTransport(streamState.Client.Account, streamState.Stream.id);
 
             var received = Commands.Receive(commitId, streamState, transport, topLevelObjects).Result;
-            Console.WriteLine($"Recevied data from stream: {streamId}");
+            Console.WriteLine($"Received last commit from stream {streamId}");
 
             streamStates.Add(streamState);
           }
@@ -292,7 +301,7 @@ namespace ConnectorGSA
         //There seem to be some issues with HTTP requests down the line if this is run on the initial (UI) thread, so this ensures it runs on another thread
         cliResult = Task.Run(() =>
         {
-          Console.WriteLine($"Loading data from: {filePath}");
+          Console.WriteLine($"Loading data from {filePath}");
           Commands.LoadDataFromFile(proxyLoggingProgress, Instance.GsaModel.ResultGroups, Instance.GsaModel.ResultTypes, Instance.GsaModel.ResultCases); //Ensure all nodes
 
           Console.WriteLine($"Converting...");
@@ -334,11 +343,20 @@ namespace ConnectorGSA
 
           var serverTransport = new ServerTransport(account, streamState.Stream.id);
 
-          Console.WriteLine($"Sending to Speckle server: {RestApi}");
+          Console.WriteLine($"Sending to Speckle server...");
           var sent = Commands.SendCommit(commitObj, streamState, "", serverTransport).Result;
+          if (sent.status)
+          {
+            Console.WriteLine("Sending complete!");
+            Console.WriteLine($"New stream created: {streamState.Stream.id}");
+            Console.WriteLine($"New commit created: {sent.commitId}");
+          }
+          else
+          {
+            Console.WriteLine("Sending failed!");
+            return false;
+          }
 
-          Console.WriteLine("Sending complete!");
-          Console.WriteLine($"New stream created: {streamState.Stream.id}");
 
           return true;
         }).Result;
@@ -347,8 +365,6 @@ namespace ConnectorGSA
       Commands.UpsertSavedReceptionStreamInfo(true, null, streamStates.ToArray());
       ((GsaProxy)Instance.GsaModel.Proxy).SaveAs(saveAsFilePath);
       ((GsaProxy)Instance.GsaModel.Proxy).Close();
-
-      System.Windows.Forms.SendKeys.SendWait("{ENTER}"); //TODO: not great, figure out a better way to signal completion of process in console (we should have two binaries, for headless and GUI app, anyways?)
 
       return cliResult;
     }
