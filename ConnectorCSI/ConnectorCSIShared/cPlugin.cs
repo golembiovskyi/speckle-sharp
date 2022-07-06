@@ -32,9 +32,10 @@ namespace SpeckleConnectorCSI
     public static ConnectorBindingsCSI Bindings { get; set; }
 
     public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<DesktopUI2.App>()
-      .UsePlatformDetect()
-      .With(new SkiaOptions { MaxGpuResourceSizeBytes = 8096000 })
+      .UsePlatformDetect().UsePlatformDetect()
+      .With(new AvaloniaNativePlatformOptions { UseGpu = false, UseDeferredRendering = true })
       .With(new Win32PlatformOptions { AllowEglInitialization = true, EnableMultitouch = false })
+      .With(new SkiaOptions { MaxGpuResourceSizeBytes = 8096000 })
       .LogToTrace()
       .UseReactiveUI();
 
