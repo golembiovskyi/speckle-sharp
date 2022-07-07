@@ -64,12 +64,6 @@ namespace Speckle.ConnectorCSI.UI
 
       return DocumentStreams;
     }
-
-    public override List<ISetting> GetSettings()
-    {
-      return new List<ISetting> { };
-    }
-
     //public override void PersistAndUpdateStreamInFile(StreamState state)
     //{
     //    var index = DocumentStreams.FindIndex(b => b.Stream.id == state.Stream.id);
