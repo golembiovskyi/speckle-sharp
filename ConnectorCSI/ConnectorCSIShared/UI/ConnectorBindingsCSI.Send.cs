@@ -12,6 +12,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using SCT = Speckle.Core.Transports;
+using DesktopUI2.Models.Settings;
+
 
 namespace Speckle.ConnectorCSI.UI
 {
@@ -19,6 +21,7 @@ namespace Speckle.ConnectorCSI.UI
 
   {
     #region sending
+    private List<ISetting> CurrentSettings { get; set; }
 
     public override async Task<string> SendStream(StreamState state, ProgressViewModel progress)
     {
@@ -29,6 +32,14 @@ namespace Speckle.ConnectorCSI.UI
       var converter = kit.LoadConverter(appName);
       converter.SetContextDocument(Model);
       Exceptions.Clear();
+
+      // set converter settings as tuples (setting slug, setting selection)
+      var settings = new Dictionary<string, string>();
+      CurrentSettings = state.Settings;
+      foreach (var setting in state.Settings)
+        settings.Add(setting.Slug, setting.Selection);
+      converter.SetConverterSettings(settings);
+
 
       var commitObj = new Base();
       int objCount = 0;
@@ -123,9 +134,15 @@ namespace Speckle.ConnectorCSI.UI
         commitObj["@Model"] = converter.ConvertToSpeckle(("Model", "CSI"));
       }
 
-      if (commitObj["AnalysisResults"] == null)
+      var sendAnalysisModel = (CurrentSettings.FirstOrDefault(x => x.Slug == "linkedmodels-receive") as CheckBoxSetting);
+      var sendAnalysisModels = sendAnalysisModel != null ? sendAnalysisModel.IsChecked : false;
+
+      if(sendAnalysisModels == true)
       {
-        commitObj["AnalysisResults"] = converter.ConvertToSpeckle(("AnalysisResults", "CSI"));
+        if (commitObj["AnalysisResults"] == null)
+        {
+          commitObj["AnalysisResults"] = converter.ConvertToSpeckle(("AnalysisResults", "CSI"));
+        }
       }
 
       progress.Report.Merge(converter.Report);

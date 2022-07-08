@@ -14,7 +14,7 @@ namespace Speckle.ConnectorCSI.UI
       return new List<ISetting>
       {     
       new CheckBoxSetting{Slug = "send-analysis-model-results", Name = "Send Results from Analysis Model", Icon = "Link", IsChecked = false, Description = "Include "}
-      new ListBoxSetting {Slug = "recieve-merge-nodes", Name = "Merge Analysis Model Nodes", Icon ="ChartTimelineVarient", Values = prettyMeshOptions, Description = "Determines the display style of imported meshes"}
+      new ListBoxSetting {Slug = "recieve-merge-nodes", Name = "Merge Nodes", Icon ="ChartTimelineVarient", Values = prettyMeshOptions, Description = "Determines the display style of imported meshes"}
       };
     }
   }

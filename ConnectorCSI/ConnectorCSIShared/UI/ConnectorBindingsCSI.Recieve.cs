@@ -30,6 +30,14 @@ namespace Speckle.ConnectorCSI.UI
       Exceptions.Clear();
       //var previouslyRecieveObjects = state.ReceivedObjects;
 
+      // set converter settings as tuples (setting slug, setting selection)
+      var settings = new Dictionary<string, string>();
+      CurrentSettings = state.Settings;
+      foreach (var setting in state.Settings)
+        settings.Add(setting.Slug, setting.Selection);
+      converter.SetConverterSettings(settings);
+
+
       if (converter == null)
       {
         throw new Exception("Could not find any Kit!");
