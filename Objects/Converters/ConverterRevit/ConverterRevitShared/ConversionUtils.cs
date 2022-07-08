@@ -534,15 +534,18 @@ namespace Objects.Converter.Revit
     private T GetElementType<T>(Base element)
     {
       List<ElementType> types = new List<ElementType>();
+      //List<Family> families = new List<Family>();
       ElementFilter filter = GetCategoryFilter(element);
 
       if (filter != null)
       {
         types = new FilteredElementCollector(Doc).WhereElementIsElementType().OfClass(typeof(T)).WherePasses(filter).ToElements().Cast<ElementType>().ToList();
+        //families = new FilteredElementCollector(Doc).WhereElementIsElementType().OfClass(typeof(T)).WherePasses(filter).ToElements().Cast<Family>().ToList();
       }
       else
       {
         types = new FilteredElementCollector(Doc).WhereElementIsElementType().OfClass(typeof(T)).ToElements().Cast<ElementType>().ToList();
+        //families = new FilteredElementCollector(Doc).WhereElementIsElementType().OfClass(typeof(T)).ToElements().Cast<Family>().ToList();
       }
 
       if (types.Count == 0)
@@ -572,6 +575,12 @@ namespace Objects.Converter.Revit
         match = types.FirstOrDefault(x => x.Name == type);
       }
 
+      // try to load the family type from the structural families included
+      if (match == null && (element is Beam || element is Brace || element is Column))
+      {
+        match = LoadFamilySymbol(element);
+      }
+
       if (match == null && !string.IsNullOrEmpty(family)) // try and match the family only.
       {
         match = types.FirstOrDefault(x => x.FamilyName == family);
@@ -579,6 +588,7 @@ namespace Objects.Converter.Revit
           Report.Log($"Missing type. Family: {family} Type: {type}\nType was replaced with: {match.FamilyName}, {match.Name}");
 
       }
+
       if (match == null) // okay, try something!
       {
         if (element is BuiltElements.Wall) // specifies the basic wall sub type as default
@@ -594,6 +604,92 @@ namespace Objects.Converter.Revit
       }
 
       return (T)(object)match;
+    }
+
+    private FamilySymbol LoadFamilySymbol(Base element)
+    {
+      // WARNING: These strings must match the way that these families show up in the file system
+      string beamStructuralUsage = "Structural Framing";
+      string columnStructuralUsage = "Structural Columns";
+      string wideFlangeBeamFamilyName = "W-Wide Flange.rfa";
+      string wideFlangeColumnFamilyName = "W-Wide Flange-Column.rfa";
+      string hssBeamFamilyName = "HSS-Hollow Structural Section.rfa";
+      string hssColumnFamilyName = "HSS-Hollow Structural Section-Column.rfa";
+      string channelFamilyName = "C-Channel.rfa";
+      string angleFamilyName = "L-Angle.rfa";
+
+      if (element["type"] is string typeName)
+      {
+        string structuralUsage = "";
+        if (element is Beam || element is Brace)
+          structuralUsage = beamStructuralUsage;
+        else if (element is Column)
+        {
+          structuralUsage = columnStructuralUsage;
+        }
+        else
+          return null;
+        List<string> splitFamType = SplitFamType(typeName);
+        string directoryPath = null;
+        if (splitFamType.Count == 4)
+        {
+          // W12x19 (beam)
+          if (splitFamType[0].ToLower() == "w" && splitFamType[2].ToLower() == "x" && structuralUsage == beamStructuralUsage)
+            directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+              "Speckle", "Kits", "Objects", "RevitFamilies", RevitVersionHelper.Version, structuralUsage, wideFlangeBeamFamilyName);
+          // W8x24 (column)
+          else if (splitFamType[0].ToLower() == "w" && splitFamType[2].ToLower() == "x" && structuralUsage == columnStructuralUsage)
+            directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+              "Speckle", "Kits", "Objects", "RevitFamilies", RevitVersionHelper.Version, structuralUsage, wideFlangeColumnFamilyName);
+          // Hss4x4 (beam)
+          else if (splitFamType[0].ToLower() == "hss" && splitFamType[2].ToLower() == "x")
+            directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+              "Speckle", "Kits", "Objects", "RevitFamilies", RevitVersionHelper.Version, structuralUsage, hssBeamFamilyName);
+          // Hss8x8 (column)
+          else if (splitFamType[0].ToLower() == "hss" && splitFamType[2].ToLower() == "x")
+            directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+              "Speckle", "Kits", "Objects", "RevitFamilies", RevitVersionHelper.Version, structuralUsage, hssColumnFamilyName);
+          // C5x19
+          else if (splitFamType[0].ToLower() == "c" && splitFamType[2].ToLower() == "x")
+            directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
+              "Speckle", "Kits", "Objects", "RevitFamilies",  RevitVersionHelper.Version, structuralUsage, channelFamilyName);
+        }
+        else if (splitFamType.Count == 6)
+        {
+          // Hss4x4x1/4 (beam)
+          if (splitFamType[0].ToLower() == "hss" && splitFamType[2].ToLower() == "x" && splitFamType[4].ToLower() == "x" && structuralUsage == beamStructuralUsage)
+            directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+              "Speckle", "Kits", "Objects", "RevitFamilies", RevitVersionHelper.Version, structuralUsage, hssBeamFamilyName);
+          // Hss4x4x1/4 (column)
+          else if (splitFamType[0].ToLower() == "hss" && splitFamType[2].ToLower() == "x" && splitFamType[4].ToLower() == "x" && structuralUsage == columnStructuralUsage)
+            directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+              "Speckle", "Kits", "Objects", "RevitFamilies", RevitVersionHelper.Version, structuralUsage, hssBeamFamilyName);
+          // L4x4x1/4
+          else if (splitFamType[0].ToLower() == "l" && splitFamType[2].ToLower() == "x" && splitFamType[4].ToLower() == "x")
+            directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+              "Speckle", "Kits", "Objects", "RevitFamilies", RevitVersionHelper.Version, structuralUsage, angleFamilyName);
+        }
+        if (directoryPath == null)
+          return null;
+
+        Doc.LoadFamilySymbol(directoryPath, typeName, out var famSym);
+        return famSym;
+      }
+      return null;
+    }
+
+    public static List<string> SplitFamType(string input)
+    {
+      var words = new List<string> { string.Empty };
+      for (var i = 0; i < input.Length; i++)
+      {
+        words[words.Count - 1] += input[i];
+        if (i + 1 < input.Length && char.IsLetter(input[i]) != char.IsLetter(input[i + 1]))
+        {
+          words.Add(string.Empty);
+        }
+      }
+      return words;
     }
 
     private ElementFilter GetCategoryFilter(Base element)

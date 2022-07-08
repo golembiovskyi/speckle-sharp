@@ -76,6 +76,9 @@ namespace Objects.Converter.Revit
         }
       }
 
+      //Transaction tran = new Transaction(Doc, "Place beam instance");
+      //tran.Start();
+
       //create family instance
       if (revitBeam == null)
       {
@@ -100,6 +103,8 @@ namespace Objects.Converter.Revit
       {
         SetInstanceParameters(revitBeam, speckleRevitBeam);
       }
+
+      //tran.Commit();
 
       // TODO: get sub families, it's a family! 
       var placeholders = new List<ApplicationPlaceholderObject>() { new ApplicationPlaceholderObject { applicationId = speckleBeam.applicationId, ApplicationGeneratedId = revitBeam.UniqueId, NativeObject = revitBeam } };
