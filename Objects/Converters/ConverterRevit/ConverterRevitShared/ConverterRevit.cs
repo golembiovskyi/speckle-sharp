@@ -71,7 +71,6 @@ namespace Objects.Converter.Revit
 
     public ReceiveMode ReceiveMode { get; set; }
 
-    public string customClassSuffix = " (Speckle Generated)";
     /// <summary>
     /// Contains all materials in the model
     /// </summary>

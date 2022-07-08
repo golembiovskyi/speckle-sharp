@@ -534,18 +534,15 @@ namespace Objects.Converter.Revit
     private T GetElementType<T>(Base element)
     {
       List<ElementType> types = new List<ElementType>();
-      //List<Family> families = new List<Family>();
       ElementFilter filter = GetCategoryFilter(element);
 
       if (filter != null)
       {
         types = new FilteredElementCollector(Doc).WhereElementIsElementType().OfClass(typeof(T)).WherePasses(filter).ToElements().Cast<ElementType>().ToList();
-        //families = new FilteredElementCollector(Doc).WhereElementIsElementType().OfClass(typeof(T)).WherePasses(filter).ToElements().Cast<Family>().ToList();
       }
       else
       {
         types = new FilteredElementCollector(Doc).WhereElementIsElementType().OfClass(typeof(T)).ToElements().Cast<ElementType>().ToList();
-        //families = new FilteredElementCollector(Doc).WhereElementIsElementType().OfClass(typeof(T)).ToElements().Cast<Family>().ToList();
       }
 
       if (types.Count == 0)
@@ -586,7 +583,6 @@ namespace Objects.Converter.Revit
         match = types.FirstOrDefault(x => x.FamilyName == family);
         if (match != null) //inform user that the type is different!
           Report.Log($"Missing type. Family: {family} Type: {type}\nType was replaced with: {match.FamilyName}, {match.Name}");
-
       }
 
       if (match == null) // okay, try something!
@@ -611,12 +607,12 @@ namespace Objects.Converter.Revit
       // WARNING: These strings must match the way that these families show up in the file system
       string beamStructuralUsage = "Structural Framing";
       string columnStructuralUsage = "Structural Columns";
-      string wideFlangeBeamFamilyName = "W-Wide Flange.rfa";
-      string wideFlangeColumnFamilyName = "W-Wide Flange-Column.rfa";
-      string hssBeamFamilyName = "HSS-Hollow Structural Section.rfa";
-      string hssColumnFamilyName = "HSS-Hollow Structural Section-Column.rfa";
-      string channelFamilyName = "C-Channel.rfa";
-      string angleFamilyName = "L-Angle.rfa";
+      string wideFlangeBeamFamilyName = "W-Wide Flange (Speckle Auto-Import).rfa";
+      string wideFlangeColumnFamilyName = "W-Wide Flange-Column (Speckle Auto-Import).rfa";
+      string hssBeamFamilyName = "HSS-Hollow Structural Section (Speckle Auto-Import).rfa";
+      string hssColumnFamilyName = "HSS-Hollow Structural Section-Column (Speckle Auto-Import).rfa";
+      string channelFamilyName = "C-Channel (Speckle Auto-Import).rfa";
+      string angleFamilyName = "L-Angle (Speckle Auto-Import).rfa";
 
       if (element["type"] is string typeName)
       {
@@ -663,7 +659,7 @@ namespace Objects.Converter.Revit
           // Hss4x4x1/4 (column)
           else if (splitFamType[0].ToLower() == "hss" && splitFamType[2].ToLower() == "x" && splitFamType[4].ToLower() == "x" && structuralUsage == columnStructuralUsage)
             directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-              "Speckle", "Kits", "Objects", "RevitFamilies", RevitVersionHelper.Version, structuralUsage, hssBeamFamilyName);
+              "Speckle", "Kits", "Objects", "RevitFamilies", RevitVersionHelper.Version, structuralUsage, hssColumnFamilyName);
           // L4x4x1/4
           else if (splitFamType[0].ToLower() == "l" && splitFamType[2].ToLower() == "x" && splitFamType[4].ToLower() == "x")
             directoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
