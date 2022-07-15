@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
 using ConnectorRevit.Revit;
 using DesktopUI2.Models;
 using DesktopUI2.Models.Settings;
@@ -173,6 +174,19 @@ namespace Speckle.ConnectorRevit.UI
       var receiveLinkedModels = receiveLinkedModelsSetting != null ? receiveLinkedModelsSetting.IsChecked : false;
 
 
+      var uiviews = CurrentDoc.GetOpenUIViews();
+      UIView active_uiview = null;
+      foreach (var uiview in uiviews)
+      {
+        if (uiview.ViewId == CurrentDoc.Document.ActiveView.Id)
+        {
+          active_uiview = uiview;
+          break;
+        }
+      }
+      CurrentDoc.Document.Application.doevents();
+
+      int counter = 0;
       foreach (var @base in objects)
       {
         if (progress.CancellationTokenSource.Token.IsCancellationRequested)
@@ -191,6 +205,20 @@ namespace Speckle.ConnectorRevit.UI
             continue;
 
           var convRes = converter.ConvertToNative(@base);
+          counter++;
+
+          if (counter % 20 == 0)
+          {
+            CurrentDoc.Document.Regenerate();
+            CurrentDoc.RefreshActiveView();
+
+            //active_uiview.Zoom(2);
+            //active_uiview.Zoom(0.5);
+          }
+
+          //active_uiview.Zoom(2);
+          //active_uiview.Zoom(0.5);
+
           if (convRes is ApplicationPlaceholderObject placeholder)
           {
             placeholders.Add(placeholder);
