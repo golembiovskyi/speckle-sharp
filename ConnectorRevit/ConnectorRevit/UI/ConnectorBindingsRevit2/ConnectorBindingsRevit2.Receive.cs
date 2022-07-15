@@ -184,7 +184,6 @@ namespace Speckle.ConnectorRevit.UI
           break;
         }
       }
-      CurrentDoc.Document.Application.doevents();
 
       int counter = 0;
       foreach (var @base in objects)
