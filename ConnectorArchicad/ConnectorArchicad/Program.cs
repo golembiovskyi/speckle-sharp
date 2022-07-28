@@ -14,7 +14,7 @@ namespace Archicad.Launcher
     public static Window? MainWindow { get; private set; }
     public static ArchicadBinding? Bindings { get; set; }
 
-    public static void Main(string[ ] args)
+    public static void Main(string[] args)
     {
       if (args.Length == 0)
       {
@@ -28,14 +28,25 @@ namespace Archicad.Launcher
         return;
       }
 
-      Communication.ConnectionManager.Instance.Start(portNumber);
+      try
+      {
+        Communication.ConnectionManager.Instance.Start(portNumber);
 
-      Bindings = new ArchicadBinding();
-      CreateOrFocusSpeckle(args);
-      // BuildAvaloniaApp().StartWithClassicDesktopLifetime(args, Avalonia.Controls.ShutdownMode.OnMainWindowClose);
+        Bindings = new ArchicadBinding();
+
+        CreateOrFocusSpeckle(args);
+        // BuildAvaloniaApp().StartWithClassicDesktopLifetime(args, Avalonia.Controls.ShutdownMode.OnMainWindowClose);
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine("Something wet wrong :(");
+        Console.WriteLine(ex.Message);
+        Console.WriteLine(ex.StackTrace);
+        Console.ReadLine();
+      }
     }
 
-    public static void CreateOrFocusSpeckle(string[ ] args)
+    public static void CreateOrFocusSpeckle(string[] args)
     {
       if (MainWindow == null)
         BuildAvaloniaApp().Start(AppMain, args);
@@ -54,7 +65,7 @@ namespace Archicad.Launcher
       .LogToTrace()
       .UseReactiveUI();
 
-    private static void AppMain(Application app, string[ ] args)
+    private static void AppMain(Application app, string[] args)
     {
       var viewModel = new MainViewModel(Bindings);
       MainWindow = new MainWindow { DataContext = viewModel };
