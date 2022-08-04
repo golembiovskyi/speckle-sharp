@@ -11,6 +11,9 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Entry\SpeckleAutocadCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entry\OneClickCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\Panel.xaml.cs">
+      <DependentUpon>Panel.xaml</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Storage\SpeckleStreamManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\ConnectorBindingsAutocadCivil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils.cs" />
@@ -31,5 +34,11 @@
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\send32.png" />
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\tutorials16.png" />
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\tutorials32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="$(MSBuildThisFileDirectory)UI\Panel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 </Project>

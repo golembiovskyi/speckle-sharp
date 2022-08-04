@@ -25,6 +25,9 @@ namespace Speckle.ConnectorAutocadCivil.Entry
     static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr value);
     const int GWL_HWNDPARENT = -8;
     #endregion
+
+    public static bool UseDockablePanel = true;
+    public static Guid PanelId = new Guid("{0A866FB8-8FD5-4DE8-B24B-56F4FA5B0836}");
     private static Avalonia.Application AvaloniaApp { get; set; }
     public static Window MainWindow { get; private set; }
     private static CancellationTokenSource Lifetime = null;
@@ -43,12 +46,18 @@ namespace Speckle.ConnectorAutocadCivil.Entry
     [CommandMethod("Speckle", CommandFlags.Modal)]
     public static void SpeckleCommand()
     {
-      CreateOrFocusSpeckle();
+      if (UseDockablePanel)
+      {
+        var panel = commandData.Application.GetDockablePane(PanelId);
+        panel.Show();
+      }
+      else
+        CreateOrFocusSpeckle();
     }
 
     public static void InitAvalonia()
     {
-      BuildAvaloniaApp().Start(AppMain, null);
+      BuildAvaloniaApp().SetupWithoutStarting();
     }
 
     public static void CreateOrFocusSpeckle(bool showWindow = true)

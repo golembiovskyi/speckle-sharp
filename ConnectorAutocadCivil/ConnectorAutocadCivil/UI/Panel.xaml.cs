@@ -2,26 +2,26 @@
 using System.Windows;
 using System.Windows.Controls;
 using Autodesk.AutoCAD.Windows;
+using Autodesk.AutoCAD.Runtime;
 using DesktopUI2.Views;
+using Speckle.ConnectorAutocadCivil.Entry;
 
 namespace Speckle.ConnectorAutocadCivil
 {
   /// <summary>
-  /// Interaction logic for Page1.xaml
+  /// Interaction logic for Page.xaml
   /// </summary>
-  public partial class Panel
+  public partial class Panel : Page
   {
-    public static DockablePalette window = new DockablePalette();
     public static PaletteSet ps = null;
 
     public Panel()
     {
       if (ps == null)
       {
-        ps = new PaletteSet("", new System.Guid(""));
+        ps = new PaletteSet("Speckle", SpeckleAutocadCommand.PanelId);
         ps.Load += Ps_Load;
-        ps.Save += Ps_Save;
-        ps.AddVisual("", window);
+        ps.AddVisual("Speckle", new MainUserControl());
         ps.KeepFocus = true;
         ps.Visible = true;
 
@@ -44,10 +44,10 @@ namespace Speckle.ConnectorAutocadCivil
           ps.InitializeFloatingPosition(new System.Windows.Rect(x, y, width, height));
           break;
         case "Left":
-          ps.Dock = Autodesk.AutoCAD.Windows.DockSides.Left;
+          ps.Dock = DockSides.Left;
           break;
         case "Right":
-          ps.Dock = Autodesk.AutoCAD.Windows.DockSides.Right;
+          ps.Dock = DockSides.Right;
           break;
         default:
           ps.InitializeFloatingPosition(new System.Windows.Rect(100, 100, 100, 200));
@@ -64,12 +64,12 @@ namespace Speckle.ConnectorAutocadCivil
       {
         switch (ps.Dock)
         {
-          case Autodesk.AutoCAD.Windows.Docksides.None:
+          case DockSides.None:
             e.ConfigurationSection.WriteProperty("Position", "Floating");
             break;
-          case Autodesk.AutoCAD.Windows.Docksides.Left:
+          case DockSides.Left:
             break;
-          case Autodesk.AutoCAD.Windows.Docksides.Right:
+          case DockSides.Right:
             break;
           default:
             break;
