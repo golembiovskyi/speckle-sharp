@@ -59,6 +59,10 @@
       <Project>{3ad2c014-1eca-4a6b-bac4-30ce9a443a5b}</Project>
       <Name>Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\DesktopUI2\AvaloniaHwndHost\AvaloniaHwndHost.csproj">
+      <Project>{7feacd5c-8c12-4e3e-bea2-fc4924d6466d}</Project>
+      <Name>AvaloniaHwndHost</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\DesktopUI2\DesktopUI2\DesktopUI2.csproj">
       <Project>{eab21473-7013-431c-b526-fb5ba657ae2f}</Project>
       <Name>DesktopUI2</Name>
