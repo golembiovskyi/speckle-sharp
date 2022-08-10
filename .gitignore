@@ -366,3 +366,6 @@ speckle-sharp-ci-tools
 
 .circleci/continuation-config.yml
 .circleci/contiuation-config.yml
+
+# Mappings ignore files
+/Mappings/Rhino/WebUi/node_modules
